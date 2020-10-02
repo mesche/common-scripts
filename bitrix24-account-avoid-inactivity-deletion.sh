@@ -20,7 +20,7 @@
 #
 #    ::::::::::::::: www.blogging-it.com :::::::::::::::
 #    
-# Copyright (C) 2017 Markus Eschenbach. All rights reserved.
+# Copyright (C) 2020 Markus Eschenbach. All rights reserved.
 # 
 # 
 # This software is provided on an "as-is" basis, without any express or implied warranty.
@@ -55,8 +55,8 @@
 #===================================================================
 # SETTINGS
 #===================================================================
-user='somebody@example.com'   # Bitrix24 auth user/email
-password='1234567' # Bitrix24 auth password
+user='somebody@example.com'   # Bitrix24 account - user/email with administrator rights
+password='1234567' # Bitrix24 account - password
 account='b24-xxxxxx' # default name ( b24-xxxxxx) or custom
 domain='bitrix24.de' # domain with zone
 dirName="tmp_webdav-check-$(uuidgen)" # name of the directory
