@@ -4,6 +4,8 @@
 # Use this script to avoid deletion of the account due to inactivity.
 # It creates a directory with a random name on Bitrix24.Drive and deletes it immediately.
 #
+# VERSION: 01.01.00
+#
 # BACKGROUND:
 # If an instance of Bitrix24 on a free plan (either converted to a free plan or originally on a free plan) is completely inactive over the course of 30 days, 
 # it is 'archived', and it can be retrieved only by an administrator account (yourself or a user in the instance with administrator rights). 
@@ -57,7 +59,7 @@
 #===================================================================
 user='somebody@example.com'   # Bitrix24 account - user/email with administrator rights
 password='1234567' # Bitrix24 account - password
-account='b24-xxxxxx' # default name ( b24-xxxxxx) or custom
+accounts='b24-xxxxxx;b24-xxxxxx' # default names or custom bitrix24 - separated by semicolon (b24-xxxxxx;b24-xxxxxx;.....)
 domain='bitrix24.de' # domain with zone
 dirName="tmp_webdav-check-$(uuidgen)" # name of the directory
 
@@ -65,30 +67,42 @@ dirName="tmp_webdav-check-$(uuidgen)" # name of the directory
 #===================================================================
 # PREPARE
 #===================================================================
-basicAuth=$(echo -ne "${user}:${password}" | base64)
-webDavURL="https://${account}.${domain}/company/personal/user/1/disk/path/${dirName}"
+exitCode=0 # the default exit code, if no error occurs
+basicAuth=$(echo -ne "${user}:${password}" | base64) # convert auth string to base64 string
+declare -a accountsArr= # define variable
+IFS=';' read -ra accountsArr <<< "${accounts}" # parse string to array
 
 
 #===================================================================
 # EXECUTE CURL
 #===================================================================
-function execCurl(){
+function execCurl() {
 	echo "Run request: ${1} - ${2}"
 	local statusCode=$(curl -k --write-out '%{http_code}' --silent --output /dev/null --header "Authorization: Basic ${basicAuth}" -X "${1}" "${2}")
 	echo "Response - Status-Code: ${statusCode}"
 	if [[ "${statusCode}" -ne "${3}" ]] ; then
-	  echo "Error - Wrong Status-Code - Expected: ${3}" 
-	  exit 1
+	  echo "ERROR: Wrong Status-Code - Expected: ${3}" 
+	  exitCode=1
 	fi
+}
+
+function processBitrix() {
+	echo "Process Bitrix24 - ${1}.${domain}"
+	local webDavURL="https://${1}.${domain}/company/personal/user/1/disk/path/${dirName}"
+	
+	echo "Step 1/2: create folder - ${dirName}"
+	execCurl "MKCOL" "${webDavURL}" 201
+
+	echo "Step 2/2: delete folder -  ${dirName}"
+	execCurl "DELETE" "${webDavURL}" 204
 }
 
 
 #===================================================================
 # MAIN
 #===================================================================
-echo "Step 1/2: create folder - ${dirName}"
-execCurl "MKCOL" "${webDavURL}" 201
+for i in "${accountsArr[@]}"; do
+    processBitrix "${i}"
+done
 
-echo "Step 2/2: delete folder -  ${dirName}"
-execCurl "DELETE" "${webDavURL}" 204
-
+exit ${exitCode}
