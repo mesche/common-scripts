@@ -81,13 +81,13 @@ IFS=';' read -ra passwordsArr <<< "${passwords}" # parse string to array
 # EXECUTE CURL
 #===================================================================
 function execCurl() {
-	echo "Run request: ${1} - ${2}"
-	local statusCode=$(curl -k --write-out '%{http_code}' --silent --output /dev/null --header "Authorization: Basic ${3}" -X "${1}" "${2}")
-	echo "Response - Status-Code: ${statusCode}"
-	if [[ "${statusCode}" -ne "${4}" ]] ; then
-	  echo "ERROR: Wrong Status-Code - Expected: ${4}"
-	  exitCode=1
-	fi
+  echo "Run request: ${1} - ${2}"
+  local statusCode=$(curl -k --write-out '%{http_code}' --silent --output /dev/null --header "Authorization: Basic ${3}" -X "${1}" "${2}")
+  echo "Response - Status-Code: ${statusCode}"
+  if [[ "${statusCode}" -ne "${4}" ]] ; then
+     echo "ERROR: Wrong Status-Code - Expected: ${4}"
+     exitCode=1
+  fi
 }
 
 function processBitrix() {
@@ -105,15 +105,15 @@ function processBitrix() {
   fi
 
   local basicAuth=$(echo -ne "${user}:${pass}" | base64) # convert auth string to base64 string
-	local webDavURL="https://${account}.${domain}/company/personal/user/1/disk/path/${dirName}"
+  local webDavURL="https://${account}.${domain}/company/personal/user/1/disk/path/${dirName}"
 
   echo "Process Bitrix24 - ${idx} - ${account} - ${user}"
 
-	echo "Step 1/2: create folder - ${dirName}"
-	execCurl "MKCOL" "${webDavURL}" "${basicAuth}" 201
+  echo "Step 1/2: create folder - ${dirName}"
+  execCurl "MKCOL" "${webDavURL}" "${basicAuth}" 201
 
-	echo "Step 2/2: delete folder - ${dirName}"
-	execCurl "DELETE" "${webDavURL}" "${basicAuth}" 204
+  echo "Step 2/2: delete folder - ${dirName}"
+  execCurl "DELETE" "${webDavURL}" "${basicAuth}" 204
 }
 
 
@@ -125,5 +125,3 @@ for i in "${!accountsArr[@]}"; do
 done
 
 exit ${exitCode}
-
-}
